@@ -1,0 +1,1 @@
+- [Unlabeled OpenStreetMap maps](osm-quiz-maps.md) — bundle real roads without names, use geographic markers, and keep visible contributor attribution.

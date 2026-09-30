@@ -142,15 +142,39 @@ components:
         kind:
           type: string
           enum: [street, landmark]
-        targetX:
+        targetLat:
           type: number
-        targetY:
+          minimum: -90
+          maximum: 90
+        targetLng:
           type: number
+          minimum: -180
+          maximum: 180
         options:
           type: array
           items:
             $ref: "#/components/schemas/QuizOption"
-      required: [id, prompt, kind, targetX, targetY, options]
+      required: [id, prompt, kind, targetLat, targetLng, options]
+    MapBounds:
+      type: object
+      properties:
+        north:
+          type: number
+          minimum: -90
+          maximum: 90
+        south:
+          type: number
+          minimum: -90
+          maximum: 90
+        east:
+          type: number
+          minimum: -180
+          maximum: 180
+        west:
+          type: number
+          minimum: -180
+          maximum: 180
+      required: [north, south, east, west]
     CityQuiz:
       type: object
       properties:
@@ -160,7 +184,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/QuizQuestion"
-      required: [city, questions]
+        mapBounds:
+          $ref: "#/components/schemas/MapBounds"
+      required: [city, questions, mapBounds]
     QuizAnswer:
       type: object
       properties:

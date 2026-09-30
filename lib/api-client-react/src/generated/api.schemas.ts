@@ -38,14 +38,46 @@ export interface QuizQuestion {
   id: string;
   prompt: string;
   kind: QuizQuestionKind;
-  targetX: number;
-  targetY: number;
+  /**
+     * @minimum -90
+     * @maximum 90
+     */
+  targetLat: number;
+  /**
+     * @minimum -180
+     * @maximum 180
+     */
+  targetLng: number;
   options: QuizOption[];
+}
+
+export interface MapBounds {
+  /**
+     * @minimum -90
+     * @maximum 90
+     */
+  north: number;
+  /**
+     * @minimum -90
+     * @maximum 90
+     */
+  south: number;
+  /**
+     * @minimum -180
+     * @maximum 180
+     */
+  east: number;
+  /**
+     * @minimum -180
+     * @maximum 180
+     */
+  west: number;
 }
 
 export interface CityQuiz {
   city: City;
   questions: QuizQuestion[];
+  mapBounds: MapBounds;
 }
 
 export interface QuizAnswer {

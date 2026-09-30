@@ -22,6 +22,7 @@ import {
 } from '@workspace/api-client-react';
 import type { City, QuizQuestion, QuizResult } from '@workspace/api-client-react';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { CAIRO_PREVIEW_BOUNDS, GeographicMap } from '@/components/geographic-map';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
@@ -124,16 +125,13 @@ function Home() {
                 Pick a place to begin.
               </p>
             </div>
-            <div className="welcome-art" aria-hidden="true">
-              <svg viewBox="0 0 390 240" fill="none">
-                <path d="M-8 61C57 53 60 97 116 83C166 71 153 37 222 41C283 45 272 92 397 74" stroke="#B6C2AE" strokeWidth="17" strokeLinecap="round" />
-                <path d="M4 152C60 142 65 190 124 170C181 151 171 130 232 138C299 147 316 175 398 149" stroke="#F8F5EA" strokeWidth="25" strokeLinecap="round" />
-                <path d="M85-5C101 42 82 83 104 120C128 160 116 184 139 248M243-8C222 39 255 72 242 108C231 139 263 182 254 246M327-5C300 46 314 66 304 117C294 167 327 199 311 246" stroke="#F8F5EA" strokeWidth="19" strokeLinecap="round" />
-                <path d="M-4 111C43 109 74 129 114 118C165 104 182 111 216 113C273 116 293 110 395 111M-5 207C52 191 80 218 132 204C193 187 202 202 244 207C302 214 337 207 400 191" stroke="#C2C8B7" strokeWidth="2" strokeDasharray="3 5" />
-                <path d="M31 20L48 31M179 19L196 28M278 202L292 213M159 222L168 232" stroke="#D5B78D" strokeWidth="4" strokeLinecap="round" />
-                <circle cx="59" cy="87" r="4" fill="#799781" /><circle cx="187" cy="152" r="4" fill="#799781" /><circle cx="344" cy="113" r="4" fill="#799781" />
-              </svg>
-              <span className="art-pin" />
+            <div className="welcome-art">
+              <GeographicMap
+                cityId="cairo"
+                cityName="Cairo"
+                mapBounds={CAIRO_PREVIEW_BOUNDS}
+                variant="preview"
+              />
             </div>
           </div>
 
@@ -239,7 +237,7 @@ function Home() {
               <button className="primary-button" onClick={returnToCities} data-testid="button-empty-quiz-cities">Choose a city</button>
             </div>
           )}
-          {!quizQuery.isLoading && !quizQuery.isError && currentQuestion && (
+          {!quizQuery.isLoading && !quizQuery.isError && quiz && currentQuestion && (
             <>
               <div className="progress-line" aria-label={`Question ${questionIndex + 1} of ${questions.length}`}>
                 <div className="progress-track">
@@ -250,7 +248,12 @@ function Home() {
                 </span>
               </div>
               <div className="quiz-layout" data-testid="panel-question">
-                <SchematicMap question={currentQuestion} cityName={selectedCity.name} />
+                <GeographicMap
+                  cityId={selectedCity.id}
+                  cityName={selectedCity.name}
+                  mapBounds={quiz.mapBounds}
+                  question={currentQuestion}
+                />
                 <div className="question-card">
                   <div className="question-kicker">
                     <span className="question-kicker-mark">{currentQuestion.kind === 'street' ? <Navigation2 size={14} /> : <MapPin size={14} />}</span>
@@ -310,8 +313,8 @@ function Home() {
                   </div>
                 </div>
               </div>
-              <p className="map-footnote" data-testid="text-schematic-disclaimer">
-                <Map size={12} /> Schematic map for learning only — not for real-world navigation.
+              <p className="map-footnote" data-testid="text-map-disclaimer">
+                <Map size={12} /> Real street geometry; labels are hidden until you finish the quiz.
               </p>
             </>
           )}
@@ -368,39 +371,6 @@ function Home() {
         <MapPin size={12} /> A friendly map-reading game for getting to know the places around you.
       </footer>
     </main>
-  );
-}
-
-function SchematicMap({ question, cityName }: { question: QuizQuestion; cityName: string }) {
-  const rawX = Number(question.targetX);
-  const rawY = Number(question.targetY);
-  const normalizedX = rawX >= 0 && rawX <= 1 ? rawX * 100 : rawX;
-  const normalizedY = rawY >= 0 && rawY <= 1 ? rawY * 100 : rawY;
-  const x = Math.min(92, Math.max(8, normalizedX));
-  const y = Math.min(89, Math.max(14, normalizedY));
-
-  return (
-    <div className="map-card" data-testid={`map-schematic-${question.id}`} aria-label={`Schematic map of ${cityName}, with an unlabeled target marker`}>
-      <div className="map-topline">
-        <span className="map-label"><Map size={12} /> Learning map · {cityName}</span>
-        <span className="map-north" aria-label="North">N</span>
-      </div>
-      <svg className="schematic-map" viewBox="0 0 640 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <rect width="640" height="500" fill="#e7e7d8" />
-        <path d="M-40 141C80 120 130 175 219 146C313 116 349 89 427 117C506 146 561 164 684 120" fill="none" stroke="#cad5c2" strokeWidth="62" strokeLinecap="round" />
-        <path d="M-40 141C80 120 130 175 219 146C313 116 349 89 427 117C506 146 561 164 684 120" fill="none" stroke="#f5f2e7" strokeWidth="46" strokeLinecap="round" />
-        <path d="M-30 361C74 318 134 394 232 353C332 311 354 336 434 354C519 373 568 338 679 306" fill="none" stroke="#f7f4e9" strokeWidth="48" strokeLinecap="round" />
-        <path d="M77 -28C119 51 94 111 137 189C178 263 165 346 198 532M272 -29C242 50 294 95 276 164C256 237 306 298 278 525M489 -35C450 49 491 98 465 167C435 245 494 322 463 527" fill="none" stroke="#f7f4e9" strokeWidth="39" strokeLinecap="round" />
-        <path d="M-10 250C98 220 149 263 245 240C335 218 374 239 452 235C531 230 575 205 663 184M-20 445C69 403 115 435 190 417C268 398 337 421 390 433C475 452 537 406 660 390" fill="none" stroke="#c5cebd" strokeWidth="2" strokeDasharray="5 9" />
-        <path d="M14 43L54 70M189 34L216 57M348 31L383 61M554 238L591 261M320 458L352 476M54 295L87 317M533 440L572 464" stroke="#d6bd94" strokeWidth="7" strokeLinecap="round" />
-        <path d="M55 183L116 202L141 181L174 201M345 188L383 201L414 184L451 197M215 285L249 303L276 284M491 298L525 316L552 290" fill="none" stroke="#d0d6c7" strokeWidth="2" strokeLinecap="round" />
-        <path d="M33 388C73 364 107 370 134 388M369 73C392 57 416 61 431 78M533 84C557 69 580 78 596 94" fill="none" stroke="#bdd0b5" strokeWidth="5" strokeLinecap="round" />
-        <circle cx="111" cy="235" r="6" fill="#b5c8a9" /><circle cx="400" cy="275" r="7" fill="#b5c8a9" /><circle cx="581" cy="352" r="6" fill="#b5c8a9" />
-        <circle cx="332" cy="400" r="5" fill="#b5c8a9" /><circle cx="543" cy="168" r="5" fill="#b5c8a9" />
-      </svg>
-      <span className="map-dot" style={{ left: `${x}%`, top: `${y}%` }} data-testid={`marker-target-${question.id}`} />
-      <span className="map-scale">NORTH IS UP <span aria-hidden="true">·</span> STREET SHAPES ARE APPROXIMATE</span>
-    </div>
   );
 }
 

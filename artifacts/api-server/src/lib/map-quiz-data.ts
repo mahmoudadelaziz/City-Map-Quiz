@@ -7,10 +7,17 @@ export type QuizQuestion = {
   id: string;
   prompt: string;
   kind: "street" | "landmark";
-  targetX: number;
-  targetY: number;
+  targetLat: number;
+  targetLng: number;
   options: QuizOption[];
   correctOptionId: string;
+};
+
+export type MapBounds = {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
 };
 
 export type QuizCity = {
@@ -19,6 +26,7 @@ export type QuizCity = {
   governorate: string;
   tagline: string;
   questionCount: number;
+  mapBounds: MapBounds;
   questions: QuizQuestion[];
 };
 
@@ -29,13 +37,14 @@ export const quizCities: QuizCity[] = [
     governorate: "Cairo Governorate",
     tagline: "Trace the heart of the capital",
     questionCount: 6,
+    mapBounds: { north: 30.075, south: 30.02, east: 31.26, west: 31.2 },
     questions: [
       {
         id: "cairo-1",
         prompt: "Which landmark is marked?",
         kind: "landmark",
-        targetX: 57,
-        targetY: 39,
+        targetLat: 30.0479664,
+        targetLng: 31.2336093,
         options: [
           { id: "egyptian-museum", label: "The Egyptian Museum" },
           { id: "cairo-tower", label: "Cairo Tower" },
@@ -48,8 +57,8 @@ export const quizCities: QuizCity[] = [
         id: "cairo-2",
         prompt: "Which street is marked?",
         kind: "street",
-        targetX: 68,
-        targetY: 55,
+        targetLat: 30.0505169,
+        targetLng: 31.2404876,
         options: [
           { id: "talaat-harb", label: "Talaat Harb Street" },
           { id: "ramses-street", label: "Ramses Street" },
@@ -62,8 +71,8 @@ export const quizCities: QuizCity[] = [
         id: "cairo-3",
         prompt: "Which landmark is marked?",
         kind: "landmark",
-        targetX: 63,
-        targetY: 44,
+        targetLat: 30.0443934,
+        targetLng: 31.2357457,
         options: [
           { id: "tahrir-square", label: "Tahrir Square" },
           { id: "opera-square", label: "Opera Square" },
@@ -74,24 +83,24 @@ export const quizCities: QuizCity[] = [
       },
       {
         id: "cairo-4",
-        prompt: "Which street is marked?",
-        kind: "street",
-        targetX: 75,
-        targetY: 36,
+        prompt: "Which landmark is marked?",
+        kind: "landmark",
+        targetLat: 30.0425838,
+        targetLng: 31.2240718,
         options: [
-          { id: "26-july", label: "26th of July Street" },
-          { id: "mohamed-farid", label: "Mohamed Farid Street" },
-          { id: "el-gomhoreya", label: "El Gomhoreya Street" },
-          { id: "el-tahrir", label: "El Tahrir Street" },
+          { id: "opera-house", label: "Cairo Opera House" },
+          { id: "egyptian-museum", label: "The Egyptian Museum" },
+          { id: "abdeen-palace", label: "Abdeen Palace" },
+          { id: "cairo-tower", label: "Cairo Tower" },
         ],
-        correctOptionId: "26-july",
+        correctOptionId: "opera-house",
       },
       {
         id: "cairo-5",
         prompt: "Which landmark is marked?",
         kind: "landmark",
-        targetX: 37,
-        targetY: 57,
+        targetLat: 30.0460136,
+        targetLng: 31.2243131,
         options: [
           { id: "cairo-tower", label: "Cairo Tower" },
           { id: "cairo-university", label: "Cairo University" },
@@ -104,15 +113,15 @@ export const quizCities: QuizCity[] = [
         id: "cairo-6",
         prompt: "Which landmark is marked?",
         kind: "landmark",
-        targetX: 48,
-        targetY: 48,
+        targetLat: 30.0427442,
+        targetLng: 31.2473893,
         options: [
+          { id: "abdeen-palace", label: "Abdeen Palace" },
           { id: "qasr-el-nil-bridge", label: "Qasr El Nil Bridge" },
-          { id: "6-october-bridge", label: "6th of October Bridge" },
-          { id: "abbas-bridge", label: "Abbas Bridge" },
-          { id: "imbaba-bridge", label: "Imbaba Bridge" },
+          { id: "cairo-tower", label: "Cairo Tower" },
+          { id: "egyptian-museum", label: "The Egyptian Museum" },
         ],
-        correctOptionId: "qasr-el-nil-bridge",
+        correctOptionId: "abdeen-palace",
       },
     ],
   },
@@ -122,13 +131,14 @@ export const quizCities: QuizCity[] = [
     governorate: "Alexandria Governorate",
     tagline: "Follow the coast through the city",
     questionCount: 6,
+    mapBounds: { north: 31.25, south: 31.17, east: 29.96, west: 29.87 },
     questions: [
       {
         id: "alex-1",
         prompt: "Which landmark is marked?",
         kind: "landmark",
-        targetX: 25,
-        targetY: 39,
+        targetLat: 31.2136787,
+        targetLng: 29.8854132,
         options: [
           { id: "qaitbay", label: "Qaitbay Citadel" },
           { id: "montaza-palace", label: "Montaza Palace" },
@@ -141,22 +151,22 @@ export const quizCities: QuizCity[] = [
         id: "alex-2",
         prompt: "Which street is marked?",
         kind: "street",
-        targetX: 60,
-        targetY: 42,
+        targetLat: 31.2100093,
+        targetLng: 29.8821356,
         options: [
+          { id: "qaitbay-street", label: "Qaitbay Citadel Street" },
           { id: "corniche", label: "The Corniche" },
           { id: "abu-qir", label: "Abu Qir Street" },
           { id: "fouad", label: "Fouad Street" },
-          { id: "el-horreya", label: "El Horreya Road" },
         ],
-        correctOptionId: "corniche",
+        correctOptionId: "qaitbay-street",
       },
       {
         id: "alex-3",
         prompt: "Which landmark is marked?",
         kind: "landmark",
-        targetX: 38,
-        targetY: 45,
+        targetLat: 31.2086605,
+        targetLng: 29.9089329,
         options: [
           { id: "bibliotheca", label: "Bibliotheca Alexandrina" },
           { id: "alexandria-station", label: "Misr Station" },
@@ -169,8 +179,8 @@ export const quizCities: QuizCity[] = [
         id: "alex-4",
         prompt: "Which landmark is marked?",
         kind: "landmark",
-        targetX: 78,
-        targetY: 49,
+        targetLat: 31.2349967,
+        targetLng: 29.9486108,
         options: [
           { id: "stanley-bridge", label: "Stanley Bridge" },
           { id: "qaitbay", label: "Qaitbay Citadel" },
@@ -183,8 +193,8 @@ export const quizCities: QuizCity[] = [
         id: "alex-5",
         prompt: "Which landmark is marked?",
         kind: "landmark",
-        targetX: 58,
-        targetY: 66,
+        targetLat: 31.2189912,
+        targetLng: 29.942465,
         options: [
           { id: "sidi-gaber", label: "Sidi Gaber Station" },
           { id: "misr-station", label: "Misr Station" },
@@ -197,8 +207,8 @@ export const quizCities: QuizCity[] = [
         id: "alex-6",
         prompt: "Which landmark is marked?",
         kind: "landmark",
-        targetX: 43,
-        targetY: 61,
+        targetLat: 31.193363,
+        targetLng: 29.9067595,
         options: [
           { id: "misr-station", label: "Misr Station" },
           { id: "sidi-gaber", label: "Sidi Gaber Station" },

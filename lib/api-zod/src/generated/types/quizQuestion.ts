@@ -12,7 +12,15 @@ export interface QuizQuestion {
   id: string;
   prompt: string;
   kind: QuizQuestionKind;
-  targetX: number;
-  targetY: number;
+  /**
+     * @minimum -90
+     * @maximum 90
+     */
+  targetLat: number;
+  /**
+     * @minimum -180
+     * @maximum 180
+     */
+  targetLng: number;
   options: QuizOption[];
 }

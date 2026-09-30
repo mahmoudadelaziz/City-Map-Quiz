@@ -10,6 +10,7 @@ export * from './city';
 export * from './cityQuiz';
 export * from './error';
 export * from './healthStatus';
+export * from './mapBounds';
 export * from './quizAnswer';
 export * from './quizAnswerResult';
 export * from './quizOption';

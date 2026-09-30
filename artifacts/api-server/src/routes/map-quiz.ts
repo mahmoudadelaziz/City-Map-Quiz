@@ -11,7 +11,9 @@ import { quizCities } from "../lib/map-quiz-data";
 const router: IRouter = Router();
 
 router.get("/cities", (_req, res) => {
-  const cities = quizCities.map(({ questions: _questions, ...city }) => city);
+  const cities = quizCities.map(
+    ({ questions: _questions, mapBounds: _mapBounds, ...city }) => city,
+  );
   res.json(ListCitiesResponse.parse(cities));
 });
 
@@ -36,6 +38,7 @@ router.get("/cities/:cityId/quiz", (req, res) => {
       tagline: city.tagline,
       questionCount: city.questionCount,
     },
+    mapBounds: city.mapBounds,
     questions: city.questions.map(
       ({ correctOptionId: _correctOptionId, ...question }) => question,
     ),

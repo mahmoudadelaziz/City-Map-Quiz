@@ -1,6 +1,6 @@
 # Egypt Map Quiz
 
-A small learning game for recognizing streets and landmarks in Egyptian cities using unlabeled schematic maps.
+A small learning game for recognizing streets and landmarks in Egyptian cities using unlabeled, georeferenced OpenStreetMap street geometry.
 
 ## Run & Operate
 
@@ -31,12 +31,12 @@ A small learning game for recognizing streets and landmarks in Egyptian cities u
 ## Architecture decisions
 
 - Quiz questions are fixed sample data in the API for now; answers are graded server-side and the answer key is not sent with quiz questions.
-- The map drawing is a learning aid with approximate schematic marker placement, not a navigational map.
+- Quiz maps render real OpenStreetMap road geometry. Each question marker uses geographic latitude/longitude, and names stay hidden until the quiz is graded.
 - No score history or account data is persisted yet, so the first version does not need a database.
 
 ## Product
 
-Choose Cairo or Alexandria, answer six multiple-choice questions about local streets and landmarks, and receive a graded score with a question-by-question review. Users can replay a city quiz.
+Choose Cairo or Alexandria, answer six multiple-choice questions about local streets and landmarks on a real, unlabeled street map, and receive a graded score with a question-by-question review. Users can replay a city quiz.
 
 ## User preferences
 
@@ -44,7 +44,7 @@ The user prefers a simple MERN-style stack and wants brief explanations while th
 
 ## Gotchas
 
-- The marker positions are illustrative; do not describe the current map as accurate turn-by-turn guidance.
+- The quiz map is for place recognition, not turn-by-turn navigation. Keep visible OpenStreetMap contributor attribution when changing map presentation.
 - After changing `lib/api-spec/openapi.yaml`, run `pnpm --filter @workspace/api-spec run codegen` before using updated client hooks or server schemas.
 
 ## Pointers

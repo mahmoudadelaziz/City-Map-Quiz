@@ -445,12 +445,15 @@ button { font: inherit; }
 .welcome-copy { font-size: 16px; line-height: 1.65; color: #62736c; max-width: 500px; margin: 0; }
 .welcome-art {
   height: 236px; position: relative; border: 1px solid rgba(35,69,66,.13);
-  border-radius: 45% 55% 51% 49% / 42% 39% 61% 58%; background: #e9e5d6;
-  overflow: hidden; transform: rotate(2deg); box-shadow: 0 18px 42px rgba(77,88,69,.08);
+  border-radius: 24px; background: #e9e5d6; overflow: hidden;
+  box-shadow: 0 18px 42px rgba(77,88,69,.08);
 }
-.welcome-art svg { width: 100%; height: 100%; }
-.welcome-art::after { content: 'A LITTLE CLOSER TO HOME'; position: absolute; left: 28px; bottom: 20px; color: #57716a; font: 9px var(--app-font-mono); letter-spacing: .12em; }
-.art-pin { position: absolute; left: 59%; top: 36%; width: 21px; height: 21px; border: 5px solid #f8f3e5; border-radius: 50% 50% 50% 0; background: var(--coral); transform: rotate(-45deg); box-shadow: 0 3px 9px #536c623f; }
+.welcome-art .map-card-preview { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; border: 0; border-radius: inherit; }
+.welcome-art .map-topline { left: 12px; right: 12px; top: 11px; }
+.welcome-art .map-label { padding: 6px 8px; font-size: 8px; }
+.welcome-art .map-north { width: 27px; height: 27px; }
+.welcome-art .map-scale { left: 11px; bottom: 9px; font-size: 8px; }
+.welcome-art .map-attribution { right: 9px; bottom: 7px; font-size: 8px; }
 
 .section-heading { display: flex; align-items: end; justify-content: space-between; margin: 37px 0 17px; }
 .section-heading h2 { font-family: var(--app-font-serif); font-size: 24px; margin: 0; letter-spacing: -.045em; }
@@ -507,14 +510,19 @@ button { font: inherit; }
 .progress-caption { font: 10px var(--app-font-mono); color: #78847a; white-space: nowrap; }
 .quiz-layout { display: grid; grid-template-columns: minmax(0,1.15fr) minmax(320px,.85fr); gap: 19px; align-items: stretch; }
 .map-card,.question-card { border: 1px solid #ddd9ca; border-radius: 19px; overflow: hidden; }
-.map-card { background: #e7e7d8; min-height: 448px; position: relative; }
+.map-card { background: #e9ebdf; min-height: 448px; position: relative; }
 .map-topline { position: absolute; left: 20px; right: 20px; top: 18px; display: flex; justify-content: space-between; z-index: 1; }
 .map-label { background: #fbf9f2e8; border: 1px solid #d6d8c8; border-radius: 30px; padding: 8px 11px; color: #58716a; font: 9px var(--app-font-mono); text-transform: uppercase; letter-spacing: .07em; }
 .map-north { display: grid; place-items: center; width: 31px; height: 31px; color: #536c63; background: #fbf9f2d9; border-radius: 50%; font: 10px var(--app-font-mono); }
-.schematic-map { position: absolute; inset: 0; width: 100%; height: 100%; }
-.map-scale { position: absolute; bottom: 17px; left: 20px; color: #738176; font: 9px var(--app-font-mono); letter-spacing: .04em; }
-.map-dot { position: absolute; width: 17px; height: 17px; border: 4px solid #fcf8ec; border-radius: 50% 50% 50% 0; background: #d6765a; transform: translate(-50%,-100%) rotate(-45deg); box-shadow: 0 3px 8px #293f3842; z-index: 2; }
-.map-dot::after { content: ''; position: absolute; width: 34px; height: 34px; border: 1px solid #d6765a80; border-radius: 50%; top: -13px; left: -13px; animation: markerPulse 1.9s ease-out infinite; }
+.geographic-map { position: absolute; inset: 0; width: 100%; height: 100%; }
+.map-road-casing,.map-road { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.map-road-casing { stroke: #d3d0c3; }
+.map-road { stroke: #fbf9f2; }
+.map-target-pulse { transform-box: fill-box; transform-origin: center; animation: markerPulse 1.9s ease-out infinite; }
+.map-target-dot { fill: #d6765a; stroke: #fcf8ec; stroke-width: 3px; }
+.map-attribution { position: absolute; right: 11px; bottom: 10px; z-index: 1; color: #56685f; background: #fbf9f2ed; border: 1px solid #d6d8c8; border-radius: 5px; padding: 5px 7px; font: 9px var(--app-font-mono); text-decoration: none; }
+.map-attribution:hover { text-decoration: underline; }
+.map-scale { position: absolute; bottom: 17px; left: 16px; color: #66766d; font: 9px var(--app-font-mono); letter-spacing: .04em; background: #fbf9f2df; border-radius: 5px; padding: 5px 7px; }
 @keyframes markerPulse { 0% { transform: scale(.55); opacity: .85; } 100% { transform: scale(1.5); opacity: 0; } }
 .question-card { background: #fbf9f2; padding: clamp(20px,3vw,34px); display: flex; flex-direction: column; }
 .question-kicker { display: flex; gap: 8px; align-items: center; color: #a5644d; font: 10px var(--app-font-mono); text-transform: uppercase; letter-spacing: .12em; }

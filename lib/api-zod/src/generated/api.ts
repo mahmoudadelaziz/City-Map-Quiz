@@ -37,6 +37,26 @@ export const GetCityQuizParams = zod.object({
   "cityId": zod.coerce.string()
 })
 
+export const getCityQuizResponseQuestionsItemTargetLatMin = -90;
+export const getCityQuizResponseQuestionsItemTargetLatMax = 90;
+
+export const getCityQuizResponseQuestionsItemTargetLngMin = -180;
+export const getCityQuizResponseQuestionsItemTargetLngMax = 180;
+
+export const getCityQuizResponseMapBoundsNorthMin = -90;
+export const getCityQuizResponseMapBoundsNorthMax = 90;
+
+export const getCityQuizResponseMapBoundsSouthMin = -90;
+export const getCityQuizResponseMapBoundsSouthMax = 90;
+
+export const getCityQuizResponseMapBoundsEastMin = -180;
+export const getCityQuizResponseMapBoundsEastMax = 180;
+
+export const getCityQuizResponseMapBoundsWestMin = -180;
+export const getCityQuizResponseMapBoundsWestMax = 180;
+
+
+
 export const GetCityQuizResponse = zod.object({
   "city": zod.object({
   "id": zod.string(),
@@ -49,13 +69,19 @@ export const GetCityQuizResponse = zod.object({
   "id": zod.string(),
   "prompt": zod.string(),
   "kind": zod.enum(['street', 'landmark']),
-  "targetX": zod.number(),
-  "targetY": zod.number(),
+  "targetLat": zod.number().min(getCityQuizResponseQuestionsItemTargetLatMin).max(getCityQuizResponseQuestionsItemTargetLatMax),
+  "targetLng": zod.number().min(getCityQuizResponseQuestionsItemTargetLngMin).max(getCityQuizResponseQuestionsItemTargetLngMax),
   "options": zod.array(zod.object({
   "id": zod.string(),
   "label": zod.string()
 }))
-}))
+})),
+  "mapBounds": zod.object({
+  "north": zod.number().min(getCityQuizResponseMapBoundsNorthMin).max(getCityQuizResponseMapBoundsNorthMax),
+  "south": zod.number().min(getCityQuizResponseMapBoundsSouthMin).max(getCityQuizResponseMapBoundsSouthMax),
+  "east": zod.number().min(getCityQuizResponseMapBoundsEastMin).max(getCityQuizResponseMapBoundsEastMax),
+  "west": zod.number().min(getCityQuizResponseMapBoundsWestMin).max(getCityQuizResponseMapBoundsWestMax)
+})
 })
 
 

@@ -6,9 +6,11 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { City } from './city';
+import type { MapBounds } from './mapBounds';
 import type { QuizQuestion } from './quizQuestion';
 
 export interface CityQuiz {
   city: City;
   questions: QuizQuestion[];
+  mapBounds: MapBounds;
 }
