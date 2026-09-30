@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: mapQuiz
+    description: City map quiz operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,74 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /cities:
+    get:
+      operationId: listCities
+      tags: [mapQuiz]
+      summary: List available cities
+      responses:
+        "200":
+          description: Available Egyptian cities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/City"
+  /cities/{cityId}/quiz:
+    get:
+      operationId: getCityQuiz
+      tags: [mapQuiz]
+      summary: Get a city's quiz questions
+      parameters:
+        - name: cityId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Quiz questions for the selected city
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CityQuiz"
+        "404":
+          description: City not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /quiz/score:
+    post:
+      operationId: submitQuiz
+      tags: [mapQuiz]
+      summary: Grade a completed quiz
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizSubmission"
+      responses:
+        "200":
+          description: Graded quiz result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizResult"
+        "400":
+          description: Invalid quiz answers
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: City not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +103,112 @@ components:
           type: string
       required:
         - status
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+    City:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        governorate:
+          type: string
+        tagline:
+          type: string
+        questionCount:
+          type: integer
+      required: [id, name, governorate, tagline, questionCount]
+    QuizOption:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+      required: [id, label]
+    QuizQuestion:
+      type: object
+      properties:
+        id:
+          type: string
+        prompt:
+          type: string
+        kind:
+          type: string
+          enum: [street, landmark]
+        targetX:
+          type: number
+        targetY:
+          type: number
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuizOption"
+      required: [id, prompt, kind, targetX, targetY, options]
+    CityQuiz:
+      type: object
+      properties:
+        city:
+          $ref: "#/components/schemas/City"
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuizQuestion"
+      required: [city, questions]
+    QuizAnswer:
+      type: object
+      properties:
+        questionId:
+          type: string
+        optionId:
+          type: string
+      required: [questionId, optionId]
+    QuizSubmission:
+      type: object
+      properties:
+        cityId:
+          type: string
+        answers:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuizAnswer"
+      required: [cityId, answers]
+    QuizAnswerResult:
+      type: object
+      properties:
+        questionId:
+          type: string
+        selectedOptionId:
+          type: string
+        correctOptionId:
+          type: string
+        correctLabel:
+          type: string
+        isCorrect:
+          type: boolean
+      required: [questionId, selectedOptionId, correctOptionId, correctLabel, isCorrect]
+    QuizResult:
+      type: object
+      properties:
+        cityName:
+          type: string
+        correct:
+          type: integer
+        total:
+          type: integer
+        scorePercent:
+          type: integer
+        grade:
+          type: string
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuizAnswerResult"
+      required: [cityName, correct, total, scorePercent, grade, results]
 

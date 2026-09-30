@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Egypt Map Quiz"
+description = "A beginner-friendly geography quiz that helps people learn Egyptian cities by recognizing streets and landmarks on a schematic map. Choose a city, answer multiple-choice questions, and see a graded result."
+version = "1.0.0"
+id = "artifacts/egypt-map-quiz"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25953
+
+[services.development]
+run = "pnpm --filter @workspace/egypt-map-quiz run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/egypt-map-quiz", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/egypt-map-quiz/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25953"
+BASE_PATH = "/"

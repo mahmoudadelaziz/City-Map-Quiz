@@ -6,6 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface HealthStatus {
-  status: string;
+export interface City {
+  id: string;
+  name: string;
+  governorate: string;
+  tagline: string;
+  questionCount: number;
 }
