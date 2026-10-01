@@ -10,7 +10,7 @@ import {
   buildCoastlinePaths,
   buildLinePaths,
   buildRoadPaths,
-  buildStreetLabels,
+  buildMapLabels,
   createRandomSection,
   MAP_HEIGHT,
   MAP_WIDTH,
@@ -98,12 +98,25 @@ export function GeographicMap({
         : { paths: [], seaFillPath: '' },
     [context, viewBounds],
   );
-  const streetLabels = useMemo(
+  const mapLabels = useMemo(
     () =>
-      question?.kind === 'landmark' && context
-        ? buildStreetLabels(context, viewBounds)
+      question && context && targetLocation
+        ? buildMapLabels(
+            context,
+            viewBounds,
+            targetLocation,
+            question.kind,
+            question.options.map((option) => option.label),
+          )
         : [],
-    [context, question?.kind, viewBounds],
+    [
+      context,
+      question?.id,
+      question?.kind,
+      question?.options,
+      targetLocation,
+      viewBounds,
+    ],
   );
   const target = question
     ? projectCoordinates(question.targetLng, question.targetLat, viewBounds)
@@ -117,7 +130,7 @@ export function GeographicMap({
     );
   }
 
-  const showStreetNames = question?.kind === 'landmark';
+  const showContextLabels = Boolean(question);
   const handleZoomIn = () => setZoom((current) => Math.min(current + 0.5, 4));
   const handleZoomOut = () => setZoom((current) => Math.max(current - 0.5, 1));
 
@@ -125,7 +138,8 @@ export function GeographicMap({
     <div
       className={`map-card${variant === 'preview' ? ' map-card-preview' : ''}`}
       data-testid={`map-geographic-${question?.id ?? 'preview'}`}
-      data-street-names={showStreetNames ? 'shown' : 'hidden'}
+      data-street-names={showContextLabels ? 'shown' : 'hidden'}
+      data-landmark-names={showContextLabels ? 'shown' : 'hidden'}
     >
       <div className="map-topline">
         <span className="map-label">
@@ -180,7 +194,7 @@ export function GeographicMap({
         role="img"
         aria-label={
           question
-            ? `Random local OpenStreetMap section of ${cityName} with a marker at the quiz location; street names ${showStreetNames ? 'shown' : 'hidden'}`
+            ? `Random local OpenStreetMap section of ${cityName} with nearby street and landmark names; answer choices are not labeled`
             : `Random local OpenStreetMap street section of ${cityName}`
         }
       >
@@ -216,12 +230,17 @@ export function GeographicMap({
             </g>
           ))}
         </g>
-        {showStreetNames && streetLabels.length > 0 && (
-          <g className="map-street-labels" aria-hidden="true">
-            {streetLabels.map((label, index) => (
+        {showContextLabels && mapLabels.length > 0 && (
+          <g className="map-context-labels" aria-hidden="true">
+            {mapLabels.map((label, index) => (
               <text
-                key={`${label.name}-${index}`}
-                className="map-street-label"
+                key={label.id}
+                data-testid={`map-label-${label.kind}-${index}`}
+                className={
+                  label.kind === 'landmark'
+                    ? 'map-landmark-label'
+                    : 'map-street-label'
+                }
                 x={label.x.toFixed(1)}
                 y={label.y.toFixed(1)}
                 textAnchor="middle"
@@ -248,7 +267,7 @@ export function GeographicMap({
       <span className="map-scale">
         {variant === 'preview'
           ? 'RANDOM LOCAL SECTION'
-          : `RANDOM LOCAL SECTION · STREET NAMES ${showStreetNames ? 'SHOWN' : 'HIDDEN'}`}
+          : 'LOCAL STREET + LANDMARK NAMES'}
       </span>
       <a
         className="map-attribution"

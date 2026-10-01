@@ -1,1 +1,1 @@
-- [OpenStreetMap quiz maps](osm-quiz-maps.md) — bundle map data, reveal street names only for landmarks, and keep visible contributor attribution.
+- [OpenStreetMap quiz maps](osm-quiz-maps.md) — bundle local map context, hide all answer choices from labels, and keep visible contributor attribution.

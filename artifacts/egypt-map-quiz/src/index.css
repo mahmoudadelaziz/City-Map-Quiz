@@ -526,6 +526,7 @@ button { font: inherit; }
 .map-waterway { fill: none; stroke: #83bfd5; stroke-width: 38; stroke-linecap: round; stroke-linejoin: round; opacity: .86; }
 .map-coastline { fill: none; stroke: #4c92ac; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .map-street-label { fill: #31534d; font-family: var(--app-font-sans); font-size: 15px; font-weight: 600; letter-spacing: .01em; paint-order: stroke; stroke: #faf7ec; stroke-width: 5px; stroke-linejoin: round; pointer-events: none; }
+.map-landmark-label { fill: #92533b; font-family: var(--app-font-sans); font-size: 14px; font-weight: 750; letter-spacing: .005em; paint-order: stroke; stroke: #fff8e9; stroke-width: 5.5px; stroke-linejoin: round; pointer-events: none; }
 .map-target-pulse { transform-box: fill-box; transform-origin: center; animation: markerPulse 1.9s ease-out infinite; }
 .map-target-dot { fill: #d6765a; stroke: #fcf8ec; stroke-width: 3px; }
 .map-attribution { position: absolute; right: 11px; bottom: 10px; z-index: 1; color: #56685f; background: #fbf9f2ed; border: 1px solid #d6d8c8; border-radius: 5px; padding: 5px 7px; font: 9px var(--app-font-mono); text-decoration: none; }

@@ -21,15 +21,26 @@ export type MapContext = {
   areas: Array<{ type: string; points: number[][] }>;
   waterways: Array<{ type: string; points: number[][] }>;
   coastlines: number[][][];
+  landmarks: Array<{
+    id: string;
+    name: string;
+    category: string;
+    importance: number;
+    position: number[];
+    bounds: number[];
+  }>;
 };
 
 export type MapPoint = { x: number; y: number };
-export type StreetLabel = {
+export type MapLabel = {
+  id: string;
   name: string;
   x: number;
   y: number;
   angle: number;
   width: number;
+  kind: 'street' | 'landmark';
+  importance: number;
 };
 
 const LOCAL_LATITUDE_SPAN = 0.009;
@@ -371,17 +382,140 @@ function getLineMidpoint(points: MapPoint[]) {
   return null;
 }
 
-export function buildStreetLabels(
+type LabelTarget = { lng: number; lat: number };
+
+const GENERIC_LABEL_WORDS = new Set([
+  'the',
+  'of',
+  'street',
+  'st',
+  'road',
+  'square',
+  'station',
+  'train',
+  'citadel',
+  'bridge',
+  'palace',
+  'mosque',
+  'museum',
+  'house',
+]);
+
+function normalizedLabelName(name: string) {
+  return name
+    .normalize('NFKD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLocaleLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .split(/\s+/)
+    .filter((word) => word && !GENERIC_LABEL_WORDS.has(word))
+    .join(' ');
+}
+
+function matchesChoice(name: string, choices: string[]) {
+  const candidate = normalizedLabelName(name).split(' ').filter(Boolean);
+  if (candidate.length === 0) return false;
+
+  return choices.some((choice) => {
+    const option = normalizedLabelName(choice).split(' ').filter(Boolean);
+    if (option.length === 0) return false;
+    const overlap = candidate.filter((word) => option.includes(word)).length;
+    return (
+      overlap > 0 &&
+      overlap / Math.min(candidate.length, option.length) >= 0.75
+    );
+  });
+}
+
+function roadTouchesTarget(points: number[][], target: LabelTarget) {
+  const metersPerLongitude =
+    111_320 * Math.cos((target.lat * Math.PI) / 180);
+
+  for (let index = 1; index < points.length; index += 1) {
+    const first = points[index - 1]!;
+    const second = points[index]!;
+    const firstX = ((first[0] ?? 0) - target.lng) * metersPerLongitude;
+    const firstY = ((first[1] ?? 0) - target.lat) * 111_320;
+    const secondX = ((second[0] ?? 0) - target.lng) * metersPerLongitude;
+    const secondY = ((second[1] ?? 0) - target.lat) * 111_320;
+    const deltaX = secondX - firstX;
+    const deltaY = secondY - firstY;
+    const fraction = Math.max(
+      0,
+      Math.min(
+        1,
+        -(firstX * deltaX + firstY * deltaY) /
+          (deltaX * deltaX + deltaY * deltaY || 1),
+      ),
+    );
+    const distance = Math.hypot(
+      firstX + deltaX * fraction,
+      firstY + deltaY * fraction,
+    );
+    if (distance <= 45) return true;
+  }
+
+  return false;
+}
+
+function landmarkTouchesTarget(
+  landmark: MapContext['landmarks'][number],
+  target: LabelTarget,
+) {
+  const [west, south, east, north] = landmark.bounds;
+  const targetLongitude = target.lng;
+  const targetLatitude = target.lat;
+  const inExpandedBounds =
+    west !== undefined &&
+    south !== undefined &&
+    east !== undefined &&
+    north !== undefined &&
+    targetLongitude >= west - 0.00035 &&
+    targetLongitude <= east + 0.00035 &&
+    targetLatitude >= south - 0.00035 &&
+    targetLatitude <= north + 0.00035;
+  const [longitude, latitude] = landmark.position;
+  const nearCenter =
+    longitude !== undefined &&
+    latitude !== undefined &&
+    Math.hypot(
+      (longitude - targetLongitude) *
+        111_320 *
+        Math.cos((targetLatitude * Math.PI) / 180),
+      (latitude - targetLatitude) * 111_320,
+    ) <= 135;
+
+  return inExpandedBounds || nearCenter;
+}
+
+function buildStreetLabelCandidates(
   context: MapContext,
   bounds: MapBounds,
-): StreetLabel[] {
+  target: LabelTarget | null,
+  choiceLabels: string[],
+): MapLabel[] {
+  const blockedNames = new Set<string>();
+  if (target) {
+    for (const road of context.roads) {
+      if (road.name.trim() && roadTouchesTarget(road.points, target)) {
+        blockedNames.add(normalizedLabelName(road.name));
+      }
+    }
+  }
+
   const longestByName = new Map<
     string,
     { name: string; x: number; y: number; angle: number; length: number }
   >();
 
   for (const road of context.roads) {
-    if (!road.name.trim()) continue;
+    if (
+      !road.name.trim() ||
+      blockedNames.has(normalizedLabelName(road.name)) ||
+      matchesChoice(road.name, choiceLabels)
+    ) {
+      continue;
+    }
     const fragments: MapPoint[][] = [];
     let currentFragment: MapPoint[] = [];
 
@@ -427,18 +561,105 @@ export function buildStreetLabels(
   const candidates = [...longestByName.values()].sort(
     (a, b) => b.length - a.length,
   );
-  const labels: StreetLabel[] = [];
-  for (const candidate of candidates) {
-    const width = Math.min(candidate.name.length * 8.5, 260);
-    const overlaps = labels.some(
-      (label) =>
-        Math.abs(candidate.x - label.x) <
-          (width + label.width) / 2 + 8 &&
-        Math.abs(candidate.y - label.y) < 24,
-    );
-    if (overlaps) continue;
-    labels.push({ ...candidate, width });
-    if (labels.length >= 24) break;
+  return candidates.map((candidate) => ({
+    id: `street:${normalizedLabelName(candidate.name)}`,
+    name: candidate.name,
+    x: candidate.x,
+    y: candidate.y,
+    angle: candidate.angle,
+    width: Math.min(candidate.name.length * 8.5, 260),
+    kind: 'street',
+    importance: candidate.length,
+  }));
+}
+
+function buildLandmarkLabelCandidates(
+  context: MapContext,
+  bounds: MapBounds,
+  target: LabelTarget | null,
+  choiceLabels: string[],
+): MapLabel[] {
+  const candidates = new Map<string, MapLabel>();
+
+  for (const landmark of context.landmarks) {
+    const [longitude, latitude] = landmark.position;
+    if (
+      !landmark.name.trim() ||
+      /^(home|unnamed|unknown)$/i.test(landmark.name.trim()) ||
+      /\b(bus stop|bus station|bus terminal|double-decker)\b/i.test(
+        landmark.name,
+      ) ||
+      (landmark.category === 'civic' && /\bmarket\b/i.test(landmark.name)) ||
+      longitude === undefined ||
+      latitude === undefined ||
+      !pointInsideBounds([longitude, latitude], bounds) ||
+      matchesChoice(landmark.name, choiceLabels) ||
+      (target && landmarkTouchesTarget(landmark, target))
+    ) {
+      continue;
+    }
+
+    const point = projectCoordinates(longitude, latitude, bounds);
+    const label: MapLabel = {
+      id: landmark.id,
+      name: landmark.name,
+      x: point.x,
+      y: point.y - 10,
+      angle: 0,
+      width: Math.min(landmark.name.length * 8, 270),
+      kind: 'landmark',
+      importance: landmark.importance,
+    };
+    const key = normalizedLabelName(landmark.name);
+    const existing = candidates.get(key);
+    if (!existing || label.importance > existing.importance) {
+      candidates.set(key, label);
+    }
   }
+
+  return [...candidates.values()].sort(
+    (a, b) => b.importance - a.importance || a.name.localeCompare(b.name),
+  );
+}
+
+export function buildMapLabels(
+  context: MapContext,
+  bounds: MapBounds,
+  target: LabelTarget,
+  questionKind: 'street' | 'landmark',
+  choiceLabels: string[],
+): MapLabel[] {
+  const landmarks = buildLandmarkLabelCandidates(
+    context,
+    bounds,
+    questionKind === 'landmark' ? target : null,
+    choiceLabels,
+  );
+  const streets = buildStreetLabelCandidates(
+    context,
+    bounds,
+    questionKind === 'street' ? target : null,
+    choiceLabels,
+  );
+  const labels: MapLabel[] = [];
+
+  const addWithoutOverlap = (candidates: MapLabel[], limit: number) => {
+    let added = 0;
+    for (const candidate of candidates) {
+      const overlaps = labels.some(
+        (label) =>
+          Math.abs(candidate.x - label.x) <
+            (candidate.width + label.width) / 2 + 8 &&
+          Math.abs(candidate.y - label.y) < 24,
+      );
+      if (overlaps) continue;
+      labels.push(candidate);
+      added += 1;
+      if (added >= limit) break;
+    }
+  };
+
+  addWithoutOverlap(landmarks, 8);
+  addWithoutOverlap(streets, 24);
   return labels;
 }
