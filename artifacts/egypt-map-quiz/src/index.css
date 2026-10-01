@@ -452,6 +452,9 @@ button { font: inherit; }
 .welcome-art .map-topline { left: 12px; right: 12px; top: 11px; }
 .welcome-art .map-label { padding: 6px 8px; font-size: 8px; }
 .welcome-art .map-north { width: 27px; height: 27px; }
+.welcome-art .map-legend { left: 11px; top: 44px; gap: 6px; padding: 4px 6px; font-size: 7px; }
+.welcome-art .map-legend span { gap: 4px; }
+.welcome-art .map-legend i { width: 7px; height: 7px; }
 .welcome-art .map-scale { left: 11px; bottom: 9px; font-size: 8px; }
 .welcome-art .map-attribution { right: 9px; bottom: 7px; font-size: 8px; }
 
@@ -518,11 +521,26 @@ button { font: inherit; }
 .map-road-casing,.map-road { fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .map-road-casing { stroke: #d3d0c3; }
 .map-road { stroke: #fbf9f2; }
+.map-area-water { fill: #83bfd5; stroke: #5e9db4; stroke-width: 1.5; opacity: .9; }
+.map-area-garden { fill: #9bc687; stroke: #78a966; stroke-width: 1.5; opacity: .88; }
+.map-waterway { fill: none; stroke: #83bfd5; stroke-width: 38; stroke-linecap: round; stroke-linejoin: round; opacity: .86; }
+.map-coastline { fill: none; stroke: #4c92ac; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.map-street-label { fill: #31534d; font-family: var(--app-font-sans); font-size: 15px; font-weight: 600; letter-spacing: .01em; paint-order: stroke; stroke: #faf7ec; stroke-width: 5px; stroke-linejoin: round; pointer-events: none; }
 .map-target-pulse { transform-box: fill-box; transform-origin: center; animation: markerPulse 1.9s ease-out infinite; }
 .map-target-dot { fill: #d6765a; stroke: #fcf8ec; stroke-width: 3px; }
 .map-attribution { position: absolute; right: 11px; bottom: 10px; z-index: 1; color: #56685f; background: #fbf9f2ed; border: 1px solid #d6d8c8; border-radius: 5px; padding: 5px 7px; font: 9px var(--app-font-mono); text-decoration: none; }
 .map-attribution:hover { text-decoration: underline; }
 .map-scale { position: absolute; bottom: 17px; left: 16px; color: #66766d; font: 9px var(--app-font-mono); letter-spacing: .04em; background: #fbf9f2df; border-radius: 5px; padding: 5px 7px; }
+.map-legend { position: absolute; left: 17px; top: 59px; z-index: 2; display: flex; gap: 10px; align-items: center; border: 1px solid #d6d8c8; border-radius: 7px; padding: 6px 8px; color: #526a60; background: #fbf9f2ed; font: 9px var(--app-font-mono); text-transform: uppercase; letter-spacing: .04em; }
+.map-legend span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.map-legend i { width: 9px; height: 9px; display: inline-block; border: 1px solid #ffffffa8; border-radius: 2px; }
+.map-legend-water { background: #83bfd5; }
+.map-legend-garden { background: #9bc687; }
+.map-zoom-controls { position: absolute; top: 57px; right: 16px; z-index: 2; display: flex; align-items: center; gap: 3px; padding: 4px; border: 1px solid #d6d8c8; border-radius: 9px; background: #fbf9f2ed; box-shadow: 0 2px 7px #536c6218; }
+.map-zoom-controls button { display: grid; place-items: center; width: 29px; height: 29px; padding: 0; border: 0; border-radius: 6px; color: #43665d; background: transparent; cursor: pointer; }
+.map-zoom-controls button:hover:not(:disabled) { background: #e9eee3; }
+.map-zoom-controls button:disabled { opacity: .4; cursor: not-allowed; }
+.map-zoom-level { min-width: 31px; color: #53685f; font: 10px var(--app-font-mono); text-align: center; }
 @keyframes markerPulse { 0% { transform: scale(.55); opacity: .85; } 100% { transform: scale(1.5); opacity: 0; } }
 .question-card { background: #fbf9f2; padding: clamp(20px,3vw,34px); display: flex; flex-direction: column; }
 .question-kicker { display: flex; gap: 8px; align-items: center; color: #a5644d; font: 10px var(--app-font-mono); text-transform: uppercase; letter-spacing: .12em; }

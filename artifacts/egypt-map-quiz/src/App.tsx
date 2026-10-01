@@ -314,7 +314,7 @@ function Home() {
                 </div>
               </div>
               <p className="map-footnote" data-testid="text-map-disclaimer">
-                <Map size={12} /> Real street geometry; labels are hidden until you finish the quiz.
+                <Map size={12} /> Random local sections; water is blue, gardens are green, and street names appear for landmark stops.
               </p>
             </>
           )}

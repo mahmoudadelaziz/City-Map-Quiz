@@ -31,7 +31,7 @@ A small learning game for recognizing streets and landmarks in Egyptian cities u
 ## Architecture decisions
 
 - Quiz questions are fixed sample data in the API for now; answers are graded server-side and the answer key is not sent with quiz questions.
-- Quiz maps render real OpenStreetMap road geometry. Each question marker uses geographic latitude/longitude, and names stay hidden until the quiz is graded.
+- Quiz maps use a randomized local OpenStreetMap section around each target, with zoom controls. Street names appear on landmark questions and stay hidden on street questions; water is blue and gardens are green.
 - No score history or account data is persisted yet, so the first version does not need a database.
 
 ## Product

@@ -1,16 +1,25 @@
-import { useMemo } from 'react';
-import { MapPin } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { MapPin, Minus, Plus, RotateCcw } from 'lucide-react';
 import type { MapBounds, QuizQuestion } from '@workspace/api-client-react';
 import cairoRoadData from '../data/cairo-roads.json';
 import alexandriaRoadData from '../data/alexandria-roads.json';
-
-type RoadNetwork = {
-  source: string;
-  roads: Array<{
-    type: string;
-    points: number[][];
-  }>;
-};
+import cairoMapContextData from '../data/cairo-map-context.json';
+import alexandriaMapContextData from '../data/alexandria-map-context.json';
+import {
+  buildAreaPaths,
+  buildCoastlinePaths,
+  buildLinePaths,
+  buildRoadPaths,
+  buildStreetLabels,
+  createRandomSection,
+  MAP_HEIGHT,
+  MAP_WIDTH,
+  projectCoordinates,
+  ROAD_LAYERS,
+  zoomSection,
+  type MapContext,
+  type RoadNetwork,
+} from './geographic-map-utils';
 
 type GeographicMapProps = {
   cityId: string;
@@ -27,79 +36,15 @@ export const CAIRO_PREVIEW_BOUNDS: MapBounds = {
   west: 31.2,
 };
 
-const MAP_WIDTH = 1000;
-const MAP_HEIGHT = 720;
-const MAP_PADDING = 24;
-
-const ROAD_LAYERS = [
-  { type: 'u', casing: 1.8, surface: 0.9 },
-  { type: 'r', casing: 2.6, surface: 1.45 },
-  { type: 't', casing: 4.1, surface: 2.8 },
-  { type: 's', casing: 6, surface: 4.3 },
-  { type: 'p', casing: 8.5, surface: 6.5 },
-];
-
 const roadNetworks: Record<string, RoadNetwork> = {
   cairo: cairoRoadData,
   alexandria: alexandriaRoadData,
 };
 
-function mercatorY(latitude: number) {
-  const radians = (latitude * Math.PI) / 180;
-  return Math.log(Math.tan(Math.PI / 4 + radians / 2));
-}
-
-function projectCoordinates(
-  longitude: number,
-  latitude: number,
-  bounds: MapBounds,
-) {
-  const west = (bounds.west * Math.PI) / 180;
-  const east = (bounds.east * Math.PI) / 180;
-  const north = mercatorY(bounds.north);
-  const south = mercatorY(bounds.south);
-  const longitudeRadians = (longitude * Math.PI) / 180;
-  const scale = Math.min(
-    (MAP_WIDTH - MAP_PADDING * 2) / (east - west),
-    (MAP_HEIGHT - MAP_PADDING * 2) / (north - south),
-  );
-  const mapWidth = (east - west) * scale;
-  const mapHeight = (north - south) * scale;
-
-  return {
-    x: (MAP_WIDTH - mapWidth) / 2 + (longitudeRadians - west) * scale,
-    y:
-      (MAP_HEIGHT - mapHeight) / 2 +
-      (north - mercatorY(latitude)) * scale,
-  };
-}
-
-function buildRoadPaths(network: RoadNetwork, bounds: MapBounds) {
-  const paths = Object.fromEntries(
-    ROAD_LAYERS.map(({ type }) => [type, '']),
-  ) as Record<string, string>;
-
-  for (const road of network.roads) {
-    if (paths[road.type] === undefined || road.points.length < 2) continue;
-
-    const points = road.points
-      .map(([longitude, latitude]) => {
-        if (longitude === undefined || latitude === undefined) return null;
-        return projectCoordinates(longitude, latitude, bounds);
-      })
-      .filter((point): point is { x: number; y: number } => point !== null);
-
-    if (points.length < 2) continue;
-    paths[road.type] +=
-      `M${points[0]!.x.toFixed(1)},${points[0]!.y.toFixed(1)}` +
-      points
-        .slice(1)
-        .map((point) => `L${point.x.toFixed(1)},${point.y.toFixed(1)}`)
-        .join('');
-  }
-
-  return paths;
-}
+const mapContexts: Record<string, MapContext> = {
+  cairo: cairoMapContextData,
+  alexandria: alexandriaMapContextData,
+};
 
 export function GeographicMap({
   cityId,
@@ -109,26 +54,78 @@ export function GeographicMap({
   variant = 'quiz',
 }: GeographicMapProps) {
   const network = roadNetworks[cityId];
+  const context = mapContexts[cityId];
+  const questionKey = question?.id ?? 'preview';
+  const [zoom, setZoom] = useState(1);
+  const targetLocation = useMemo(
+    () =>
+      question
+        ? { lat: question.targetLat, lng: question.targetLng }
+        : null,
+    [question?.id, question?.targetLat, question?.targetLng],
+  );
+  useEffect(() => {
+    setZoom(1);
+  }, [cityId, questionKey]);
+  const localBounds = useMemo(
+    () => createRandomSection(mapBounds, targetLocation ?? undefined),
+    [cityId, mapBounds, questionKey, targetLocation],
+  );
+  const viewBounds = useMemo(
+    () => zoomSection(localBounds, targetLocation, zoom),
+    [localBounds, targetLocation, zoom],
+  );
   const roadPaths = useMemo(
-    () => (network ? buildRoadPaths(network, mapBounds) : null),
-    [network, mapBounds],
+    () => (network ? buildRoadPaths(network, viewBounds) : null),
+    [network, viewBounds],
+  );
+  const waterAreas = useMemo(
+    () => (context ? buildAreaPaths(context, viewBounds, 'water') : []),
+    [context, viewBounds],
+  );
+  const gardenAreas = useMemo(
+    () => (context ? buildAreaPaths(context, viewBounds, 'garden') : []),
+    [context, viewBounds],
+  );
+  const waterways = useMemo(
+    () => (context ? buildLinePaths(context.waterways, viewBounds) : []),
+    [context, viewBounds],
+  );
+  const coastlines = useMemo(
+    () =>
+      context
+        ? buildCoastlinePaths(context, viewBounds)
+        : { paths: [], seaFillPath: '' },
+    [context, viewBounds],
+  );
+  const streetLabels = useMemo(
+    () =>
+      question?.kind === 'landmark' && context
+        ? buildStreetLabels(context, viewBounds)
+        : [],
+    [context, question?.kind, viewBounds],
   );
   const target = question
-    ? projectCoordinates(question.targetLng, question.targetLat, mapBounds)
+    ? projectCoordinates(question.targetLng, question.targetLat, viewBounds)
     : null;
 
-  if (!network || !roadPaths) {
+  if (!network || !context || !roadPaths) {
     return (
       <div className="map-card map-unavailable" role="alert">
-        Street map data is not available for {cityName} yet.
+        Map data is not available for {cityName} yet.
       </div>
     );
   }
+
+  const showStreetNames = question?.kind === 'landmark';
+  const handleZoomIn = () => setZoom((current) => Math.min(current + 0.5, 4));
+  const handleZoomOut = () => setZoom((current) => Math.max(current - 0.5, 1));
 
   return (
     <div
       className={`map-card${variant === 'preview' ? ' map-card-preview' : ''}`}
       data-testid={`map-geographic-${question?.id ?? 'preview'}`}
+      data-street-names={showStreetNames ? 'shown' : 'hidden'}
     >
       <div className="map-topline">
         <span className="map-label">
@@ -138,6 +135,44 @@ export function GeographicMap({
           N
         </span>
       </div>
+      <div className="map-legend" aria-label="Map colors">
+        <span><i className="map-legend-water" /> Water</span>
+        <span><i className="map-legend-garden" /> Gardens</span>
+      </div>
+      {question && variant !== 'preview' && (
+        <div className="map-zoom-controls" role="group" aria-label="Map zoom controls">
+          <button
+            type="button"
+            aria-label="Zoom out"
+            onClick={handleZoomOut}
+            disabled={zoom <= 1}
+            data-testid="button-map-zoom-out"
+          >
+            <Minus size={15} />
+          </button>
+          <span className="map-zoom-level" aria-live="polite">
+            {zoom.toFixed(1).replace(/\.0$/, '')}×
+          </span>
+          <button
+            type="button"
+            aria-label="Zoom in"
+            onClick={handleZoomIn}
+            disabled={zoom >= 4}
+            data-testid="button-map-zoom-in"
+          >
+            <Plus size={15} />
+          </button>
+          <button
+            type="button"
+            aria-label="Reset map zoom"
+            onClick={() => setZoom(1)}
+            disabled={zoom === 1}
+            data-testid="button-map-zoom-reset"
+          >
+            <RotateCcw size={14} />
+          </button>
+        </div>
+      )}
 
       <svg
         className="geographic-map"
@@ -145,11 +180,26 @@ export function GeographicMap({
         role="img"
         aria-label={
           question
-            ? `Unlabeled OpenStreetMap street map of ${cityName} with a marker at the quiz location`
-            : `Unlabeled OpenStreetMap street map of ${cityName}`
+            ? `Random local OpenStreetMap section of ${cityName} with a marker at the quiz location; street names ${showStreetNames ? 'shown' : 'hidden'}`
+            : `Random local OpenStreetMap street section of ${cityName}`
         }
       >
         <rect width={MAP_WIDTH} height={MAP_HEIGHT} fill="#e9ebdf" />
+        {coastlines.seaFillPath && (
+          <path className="map-area-water" d={coastlines.seaFillPath} />
+        )}
+        {waterAreas.map((area) => (
+          <path key={area.id} className="map-area-water" d={area.d} />
+        ))}
+        {gardenAreas.map((area) => (
+          <path key={area.id} className="map-area-garden" d={area.d} />
+        ))}
+        {waterways.map((waterway) => (
+          <path key={waterway.id} className="map-waterway" d={waterway.d} />
+        ))}
+        {coastlines.paths.map((coastline) => (
+          <path key={coastline.id} className="map-coastline" d={coastline.d} />
+        ))}
         <g aria-hidden="true">
           {ROAD_LAYERS.map(({ type, casing, surface }) => (
             <g key={type}>
@@ -166,6 +216,22 @@ export function GeographicMap({
             </g>
           ))}
         </g>
+        {showStreetNames && streetLabels.length > 0 && (
+          <g className="map-street-labels" aria-hidden="true">
+            {streetLabels.map((label, index) => (
+              <text
+                key={`${label.name}-${index}`}
+                className="map-street-label"
+                x={label.x.toFixed(1)}
+                y={label.y.toFixed(1)}
+                textAnchor="middle"
+                transform={`rotate(${label.angle.toFixed(1)} ${label.x.toFixed(1)} ${label.y.toFixed(1)})`}
+              >
+                {label.name}
+              </text>
+            ))}
+          </g>
+        )}
         {target && question && (
           <g transform={`translate(${target.x.toFixed(1)} ${target.y.toFixed(1)})`}>
             <circle
@@ -179,7 +245,11 @@ export function GeographicMap({
         )}
       </svg>
 
-      <span className="map-scale">NORTH IS UP · STREET NAMES HIDDEN</span>
+      <span className="map-scale">
+        {variant === 'preview'
+          ? 'RANDOM LOCAL SECTION'
+          : `RANDOM LOCAL SECTION · STREET NAMES ${showStreetNames ? 'SHOWN' : 'HIDDEN'}`}
+      </span>
       <a
         className="map-attribution"
         href="https://www.openstreetmap.org/copyright"
